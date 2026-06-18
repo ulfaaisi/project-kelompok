@@ -2,11 +2,15 @@
 
 namespace App\Contracts;
 
+use App\Models\User;
+
 interface AuthServiceInterface
 {
-    public function attempt(array $credentials, bool $remember = false): bool;
+    public function register(array $data): array;
 
-    public function register(array $data): bool;
+    public function login(array $credentials): ?array;
 
-    public function logout(): void;
+    public function logout(User $user): void;
+
+    public function me(User $user): array;
 }
