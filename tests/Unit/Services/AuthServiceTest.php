@@ -21,9 +21,7 @@ final class AuthServiceTest extends TestCase
 
     public function test_register_creates_user_and_returns_bearer_token(): void
     {
-        // Satu alias mock digunakan sekaligus sebagai target static User::create()
-        // dan sebagai object user hasil create. Jangan membuat mock User kedua.
-        $user = Mockery::mock('alias:'.User::class);
+        $user = Mockery::mock('alias:' . User::class);
         $tokenResult = (object) ['plainTextToken' => 'token-register-123'];
 
         Hash::shouldReceive('make')
@@ -58,7 +56,7 @@ final class AuthServiceTest extends TestCase
 
     public function test_login_returns_null_when_user_is_not_found(): void
     {
-        $user = Mockery::mock('alias:'.User::class);
+        $user = Mockery::mock('alias:' . User::class);
         $query = Mockery::mock();
 
         $user->shouldReceive('where')
@@ -79,8 +77,7 @@ final class AuthServiceTest extends TestCase
 
     public function test_login_deletes_old_tokens_and_returns_new_token(): void
     {
-        // Alias mock yang sama dipakai sebagai static model dan instance user.
-        $user = Mockery::mock('alias:'.User::class);
+        $user = Mockery::mock('alias:' . User::class);
         $query = Mockery::mock();
         $tokens = Mockery::mock();
         $tokenResult = (object) ['plainTextToken' => 'token-login-456'];
@@ -91,6 +88,7 @@ final class AuthServiceTest extends TestCase
             ->once()
             ->with('email', 'budi@example.com')
             ->andReturn($query);
+
         $query->shouldReceive('first')->once()->andReturn($user);
 
         Hash::shouldReceive('check')
@@ -100,6 +98,7 @@ final class AuthServiceTest extends TestCase
 
         $user->shouldReceive('tokens')->once()->andReturn($tokens);
         $tokens->shouldReceive('delete')->once()->andReturn(1);
+
         $user->shouldReceive('createToken')
             ->once()
             ->with('auth_token')
@@ -117,7 +116,6 @@ final class AuthServiceTest extends TestCase
 
     public function test_logout_deletes_current_access_token(): void
     {
-        // Test ini tidak memanggil method static User, jadi alias tidak diperlukan.
         $user = Mockery::mock(User::class);
         $token = Mockery::mock();
 
@@ -131,8 +129,8 @@ final class AuthServiceTest extends TestCase
 
     public function test_me_returns_only_public_user_fields(): void
     {
-        // Test ini hanya memerlukan instance User biasa.
-        $user = Mockery::mock(User::class);
+        $user = new User();
+
         $user->id = 10;
         $user->name = 'Budi';
         $user->email = 'budi@example.com';
