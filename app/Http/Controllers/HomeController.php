@@ -79,7 +79,10 @@ class HomeController extends Controller
         ];
 
         try {
-            $movie = $this->movieService->getRecommendation($filters);
+            $movie = $this->movieService->getRecommendation(
+                $filters,
+                auth()->id() ?? 0
+            );
 
             if (!$movie) {
                 return [
@@ -90,7 +93,7 @@ class HomeController extends Controller
             }
 
             // Simpan ke riwayat pencarian
-            $this->historyService->store(auth()->id(), $filters);
+            
 
             // Tandai apakah film ini sudah difavoritkan user
             $movie['is_favorited'] = $this->favoriteService->isFavorited(
@@ -108,7 +111,7 @@ class HomeController extends Controller
     private function safeGetGenres(): array
     {
         try {
-            return $this->genreService->all();
+            return $this->genreService->getAllGenres();
         } catch (TMDbException) {
             return [];
         }

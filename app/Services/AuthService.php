@@ -4,11 +4,17 @@ namespace App\Services;
 
 use App\Contracts\AuthServiceInterface;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthService implements AuthServiceInterface
 {
-    public function register(array $data): array
+    public function attempt(array $credentials, bool $remember = false): bool
+    {
+        return Auth::attempt($credentials, $remember);
+    }
+
+    public function register(array $data): bool
     {
         $user = User::create([
             'name'     => $data['name'],
@@ -16,44 +22,13 @@ class AuthService implements AuthServiceInterface
             'password' => Hash::make($data['password']),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        Auth::login($user);
 
-        return [
-            'user'         => $user,
-            'access_token' => $token,
-            'token_type'   => 'Bearer',
-        ];
+        return true;
     }
 
-    public function login(array $credentials): ?array
+    public function logout(): void
     {
-        $user = User::where('email', $credentials['email'])->first();
-
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
-            return null;
-        }
-
-        $user->tokens()->delete();
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return [
-            'user'         => $user,
-            'access_token' => $token,
-            'token_type'   => 'Bearer',
-        ];
-    }
-
-    public function logout(User $user): void
-    {
-        $user->currentAccessToken()?->delete();
-    }
-
-    public function me(User $user): array
-    {
-        return [
-            'id'    => $user->id,
-            'name'  => $user->name,
-            'email' => $user->email,
-        ];
+        Auth::logout();
     }
 }

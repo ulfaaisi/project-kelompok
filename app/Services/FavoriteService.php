@@ -10,7 +10,9 @@ class FavoriteService implements FavoriteServiceInterface
 {
     public function getUserFavorites(int $userId): Collection
     {
-        return Favorite::where('user_id', $userId)->latest()->get();
+        return Favorite::where('user_id', $userId)
+            ->latest()
+            ->get();
     }
 
     public function addFavorite(int $userId, array $data): array
@@ -20,7 +22,10 @@ class FavoriteService implements FavoriteServiceInterface
             ->exists();
 
         if ($exists) {
-            return ['favorite' => null, 'already_exists' => true];
+            return [
+                'favorite' => null,
+                'already_exists' => true,
+            ];
         }
 
         $favorite = Favorite::create([
@@ -32,7 +37,10 @@ class FavoriteService implements FavoriteServiceInterface
             'rating'       => $data['rating'] ?? null,
         ]);
 
-        return ['favorite' => $favorite, 'already_exists' => false];
+        return [
+            'favorite' => $favorite,
+            'already_exists' => false,
+        ];
     }
 
     public function removeFavorite(int $favoriteId, int $userId): bool
@@ -48,5 +56,12 @@ class FavoriteService implements FavoriteServiceInterface
         $favorite->delete();
 
         return true;
+    }
+
+    public function isFavorited(int $userId, int $movieId): bool
+    {
+        return Favorite::where('user_id', $userId)
+            ->where('movie_id', $movieId)
+            ->exists();
     }
 }

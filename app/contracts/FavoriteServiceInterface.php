@@ -11,5 +11,7 @@ interface FavoriteServiceInterface
 
     public function addFavorite(int $userId, array $data): array;
 
-    public function removeFavorite(int $favoriteId, int $userId): bool;
+    public function removeFavorite(int $favoriteId, int $userId): bool; 
+
+    public function isFavorited(int $userId, int $movieId): bool;
 }
