@@ -20,31 +20,37 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Auth
         $this->app->bind(
             AuthServiceInterface::class,
             AuthService::class
         );
 
+        // Genre
         $this->app->bind(
             GenreServiceInterface::class,
             GenreService::class
         );
 
+        // Movie
         $this->app->bind(
             MovieServiceInterface::class,
             MovieService::class
         );
 
+        // Favorite
         $this->app->bind(
             FavoriteServiceInterface::class,
             FavoriteService::class
         );
 
+        // History
         $this->app->bind(
             HistoryServiceInterface::class,
             HistoryService::class
         );
 
+        // TMDb
         $this->app->bind(
             TMDbServiceInterface::class,
             TMDbService::class
