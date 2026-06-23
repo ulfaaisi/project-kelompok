@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api; // Pastikan namespace sesuai dengan folder Api
 
+use App\Http\Controllers\Controller;
 use App\Contracts\FavoriteServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,6 +35,7 @@ class FavoriteController extends Controller
             'rating'       => ['nullable', 'numeric', 'min:0', 'max:10'],
         ]);
 
+        // Memanggil addFavorite sesuai yang ada di FavoriteService
         $result = $this->favoriteService->addFavorite(auth()->id(), $data);
 
         if ($result['already_exists']) {
@@ -46,7 +48,7 @@ class FavoriteController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Film berhasil ditambahkan ke favorit.',
-            'data' => $result
+            'data' => $result['favorite']
         ], 201); // 201 Created
     }
 
