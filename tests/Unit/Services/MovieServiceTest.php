@@ -94,7 +94,7 @@ final class MovieServiceTest extends TestCase
 
         self::assertSame(101, $result['id']);
         self::assertSame('Example Movie', $result['title']);
-        self::assertSame('https://image.test/poster.jpg', $result['poster_url']);
+        self::assertSame('https://image.tmdb.org/t/p/w500/poster.jpg', $result['poster_url']);
         self::assertSame('https://image.tmdb.org/t/p/w1280/backdrop.jpg', $result['backdrop_url']);
         self::assertSame('2024', $result['release_year']);
         self::assertSame(7.8, $result['rating']);
