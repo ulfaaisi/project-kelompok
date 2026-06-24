@@ -132,6 +132,11 @@ final class MovieServiceTest extends TestCase
                 ],
             ]);
 
+        $tmdb->shouldReceive('getMovieTrailer')
+            ->once()
+            ->with(101)
+            ->andReturn('https://youtube.com/watch?v=abc123');
+
         $tmdb->shouldReceive('getMovieImages')
             ->once()
             ->with(101)
