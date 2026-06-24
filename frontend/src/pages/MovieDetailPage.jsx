@@ -5,71 +5,87 @@ import MainLayout from "../layouts/MainLayout";
 
 import { getMovie } from "../api/movies";
 
-import CastList from "../components/movie/CastList";
-import FavoriteButton from "../components/movie/FavoriteButton";
-import TrailerModal from "../components/movie/TrailerModal";
-import Gallery from "../components/movie/Gallery";
+import FeaturedMovie from "../components/movie/FeaturedMovie";
+// import CastList from "../components/movie/CastList";
+// import Gallery from "../components/movie/Gallery";
+// import TrailerModal from "../components/movie/TrailerModal";
+
+import SkeletonCard from "../components/common/SkeletonCard";
 
 export default function MovieDetailPage() {
     const { movieId } = useParams();
 
     const [movie, setMovie] = useState(null);
+    const [loading, setLoading] = useState(true);
+
     const [showTrailer, setShowTrailer] = useState(false);
 
     useEffect(() => {
-        async function loadMovie() {
-            try {
-                const response = await getMovie(movieId);
-                if (response) {
-                    setMovie(response);
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
         loadMovie();
     }, [movieId]);
 
-    if (!movie) return null;
+    async function loadMovie() {
+        try {
+            const data = await getMovie(movieId);
+
+            setMovie(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    if (loading) {
+        return (
+            <MainLayout>
+                <div className="movie-grid">
+                    {[...Array(3)].map((_, i) => (
+                        <SkeletonCard key={i} />
+                    ))}
+                </div>
+            </MainLayout>
+        );
+    }
+
+    if (!movie) {
+        return (
+            <MainLayout>
+                <div className="empty-state">Film tidak ditemukan.</div>
+            </MainLayout>
+        );
+    }
 
     return (
         <MainLayout>
-            <section className="movie-detail">
-                <img src={movie.poster_url} alt={movie.title} />
+            <FeaturedMovie movie={movie} />
 
-                <h1>{movie.title}</h1>
+            {/* {movie.trailer_available && (
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        marginBottom: "2rem",
+                    }}
+                >
+                    <button
+                        className="watch-trailer-btn"
+                        onClick={() => setShowTrailer(true)}
+                    >
+                        ▶ Watch Trailer
+                    </button>
+                </div>
+            )} */}
 
-                <p>{movie.overview || "Sinopsis belum tersedia."}</p>
+            {/* {movie.gallery?.length > 0 && <Gallery images={movie.gallery} />}
 
-                <p>⭐ {movie.rating}</p>
+            {movie.cast?.length > 0 && <CastList cast={movie.cast} />} */}
 
-                <p>{movie.release_year}</p>
-
-                <p>{movie.vote_count} suara</p>
-
-                <button onClick={() => setShowTrailer(true)}>
-                    Tonton Trailer
-                </button>
-
-                <FavoriteButton movie={movie} />
-
-                {movie.gallery?.length > 0 && (
-                    <Gallery images={movie.gallery} />
-                )}
-
-                {movie.cast?.length > 0 && <CastList cast={movie.cast} />}
-
-                {movie.trailer_key ? (
-                    <TrailerModal
-                        open={showTrailer}
-                        trailerKey={movie.trailer_key}
-                        onClose={() => setShowTrailer(false)}
-                    />
-                ) : (
-                    <p>Trailer belum tersedia.</p>
-                )}
-            </section>
+            {/* <TrailerModal
+                open={showTrailer}
+                trailerUrl={movie.trailer_url}
+                onClose={() => setShowTrailer(false)}
+            /> */}
         </MainLayout>
     );
 }

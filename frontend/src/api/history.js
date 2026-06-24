@@ -1,5 +1,5 @@
 import { request } from "./client";
 
-export function getHistory() {
-    return request("/history");
+export async function getHistory() {
+    return request("/api/history");
 }

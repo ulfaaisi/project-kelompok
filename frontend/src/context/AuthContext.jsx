@@ -1,30 +1,19 @@
 import { createContext, useEffect, useState } from "react";
 
-export const AuthContext = createContext();
+import { csrf, request } from "../api/client";
 
-const API_URL = import.meta.env.VITE_API_URL;
+export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
 
-    async function getCsrfCookie() {
-        await fetch(`${API_URL}/sanctum/csrf-cookie`, {
-            credentials: "include",
-        });
-    }
+    const [loading, setLoading] = useState(true);
 
     async function fetchUser() {
         try {
-            const response = await fetch(`${API_URL}/api/auth/me`, {
-                credentials: "include",
-            });
+            const user = await request("/api/auth/me");
 
-            const result = await response.json();
-
-            if (result.success) {
-                setUser(result.data);
-            }
+            setUser(user);
         } catch {
             setUser(null);
         } finally {
@@ -33,59 +22,33 @@ export function AuthProvider({ children }) {
     }
 
     async function login(email, password) {
-        await getCsrfCookie();
+        await csrf();
 
-        const response = await fetch(`${API_URL}/api/auth/login`, {
+        await request("/api/auth/login", {
             method: "POST",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-            },
             body: JSON.stringify({
                 email,
                 password,
             }),
         });
 
-        const result = await response.json();
+        await fetchUser();
+    }
 
-        if (!response.ok) {
-            throw new Error(result.message || "Login gagal");
-        }
+    async function register(payload) {
+        await csrf();
+
+        await request("/api/auth/register", {
+            method: "POST",
+            body: JSON.stringify(payload),
+        });
 
         await fetchUser();
     }
 
-    async function register(data) {
-        await getCsrfCookie();
-
-        const response = await fetch(`${API_URL}/api/auth/register`, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-            },
-            body: JSON.stringify(data),
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.message || "Register gagal");
-        }
-
-        await login(data.email, data.password);
-    }
-
     async function logout() {
-        await fetch(`${API_URL}/api/auth/logout`, {
+        await request("/api/auth/logout", {
             method: "POST",
-            credentials: "include",
-            headers: {
-                Accept: "application/json",
-            },
         });
 
         setUser(null);
@@ -103,7 +66,6 @@ export function AuthProvider({ children }) {
                 login,
                 register,
                 logout,
-                fetchUser,
             }}
         >
             {children}

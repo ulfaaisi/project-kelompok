@@ -110,23 +110,41 @@ class TMDbService implements TMDbServiceInterface
      * Trailer YouTube
      */
     public function getMovieTrailer(int $movieId): ?string
-    {
-        $response = $this->request(
-            "/movie/{$movieId}/videos"
-        );
+{
+    $response = Http::get(
+        $this->baseUrl . "/movie/{$movieId}/videos",
+        [
+            'api_key' => $this->apiKey,
+        ]
+    );
 
-        foreach ($response['results'] ?? [] as $video) {
-
-            if (
-                ($video['site'] ?? '') === 'YouTube'
-                && ($video['type'] ?? '') === 'Trailer'
-            ) {
-                return 'https://www.youtube.com/watch?v=' . $video['key'];
-            }
-        }
-
+    if (!$response->successful()) {
         return null;
     }
+
+    $videos = $response->json()['results'] ?? [];
+
+    foreach ($videos as $video) {
+
+        if (
+            ($video['site'] ?? '') === 'YouTube' &&
+            ($video['type'] ?? '') === 'Trailer'
+        ) {
+            return "https://www.youtube.com/watch?v={$video['key']}";
+        }
+    }
+
+    foreach ($videos as $video) {
+
+        if (
+            ($video['site'] ?? '') === 'YouTube'
+        ) {
+            return "https://www.youtube.com/watch?v={$video['key']}";
+        }
+    }
+
+    return null;
+}
 
     /**
      * URL poster
@@ -139,4 +157,6 @@ class TMDbService implements TMDbServiceInterface
 
         return 'https://image.tmdb.org/t/p/w500' . $posterPath;
     }
+
+
 }

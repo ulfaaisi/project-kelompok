@@ -20,7 +20,7 @@ Route::prefix('auth')->group(function () {
 
 Route::get('/genres', [GenreController::class, 'index']);
 
-Route::post('/movies/recommendation', [MovieController::class, 'recommendation']);
+Route::get('/movies/recommendation', [MovieController::class, 'recommendation']);
 Route::get('/movies/{movieId}', [MovieController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {

@@ -1,64 +1,66 @@
+import { useState } from "react";
+
 import FavoriteButton from "./FavoriteButton";
+import TrailerModal from "./TrailerModal";
 
 export default function FeaturedMovie({ movie }) {
-  if (!movie) return null;
+    const [showTrailer, setShowTrailer] = useState(false);
 
-  return (
-    <section
-      className="featured-movie"
-      style={{
-        backgroundImage: `url(${movie.backdrop_url})`,
-      }}
-    >
-      <div className="overlay">
-        <img
-          src={movie.poster_url}
-          alt={movie.title}
-        />
+    if (!movie) return null;
 
-        <div className="featured-content">
+    return (
+        <>
+            <section
+                className="featured-movie"
+                style={{
+                    backgroundImage: `url(${movie.backdrop_url})`,
+                }}
+            >
+                <div className="overlay">
+                    <img src={movie.poster_url} alt={movie.title} />
 
-          <div className="movie-meta">
-            <span className="movie-badge">
-              ⭐ {movie.rating}
-            </span>
+                    <div className="featured-content">
+                        <div className="movie-meta">
+                            <span className="movie-badge">
+                                ⭐ {movie.rating}
+                            </span>
 
-            <span className="movie-badge">
-              {movie.release_year}
-            </span>
-          </div>
+                            <span className="movie-badge">
+                                {movie.release_year}
+                            </span>
+                        </div>
 
-          <h2>
-            {movie.title}
-          </h2>
+                        <h2>{movie.title}</h2>
 
-          <p className="movie-overview">
-            {movie.overview ||
-              "Tidak ada deskripsi tersedia."}
-          </p>
+                        <p className="movie-overview">
+                            {movie.overview || "Sinopsis belum tersedia."}
+                        </p>
 
-          <div
-            style={{
-              display: "flex",
-              gap: "1rem",
-              marginTop: "2rem",
-              flexWrap: "wrap",
-            }}
-          >
-            <FavoriteButton movie={movie} />
+                        <div className="featured-actions">
+                            <FavoriteButton movie={movie} />
 
-            {movie.trailer_available && (
-              <button className="trailer-btn">
-                ▶ Trailer
-              </button>
-            )}
-          </div>
-        </div>
+                            {movie.trailer_available && (
+                                <button
+                                    className="watch-trailer-btn"
+                                    onClick={() => setShowTrailer(true)}
+                                >
+                                    ▶ Trailer
+                                </button>
+                            )}
+                        </div>
+                    </div>
 
-        <div className="rating-circle">
-          {Math.round(movie.rating)}
-        </div>
-      </div>
-    </section>
-  );
+                    <div className="rating-circle">
+                        {Math.round(movie.rating)}
+                    </div>
+                </div>
+            </section>
+
+            <TrailerModal
+                open={showTrailer}
+                trailerUrl={movie.trailer_url}
+                onClose={() => setShowTrailer(false)}
+            />
+        </>
+    );
 }

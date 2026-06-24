@@ -1,39 +1,22 @@
-const API_URL = import.meta.env.VITE_API_URL;
+import { request } from "./client"; // Menghubungkan ke helper client.js
 
+// Mengambil list semua genre dari backend Laravel
 export async function getGenres() {
-    const response = await fetch(`${API_URL}/api/genres`, {
-        credentials: "include",
-    });
-
-    const result = await response.json();
-
-    return result.data;
+    return request("/api/genres");
 }
 
-export async function getRecommendation(genreIds = []) {
-    const response = await fetch(`${API_URL}/api/movies/recommendation`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-        },
-        body: JSON.stringify({
-            genre_ids: genreIds,
-        }),
-    });
+// Mengambil film rekomendasi acak berdasarkan filter
+export async function getRecommendation(filters) {
+    /* Mengubah filter { genre: "28", year: "2024", rating: "7" }
+      menjadi string query: "genre=28&year=2024&rating=7"
+    */
+    const queryString = new URLSearchParams(filters).toString();
 
-    const result = await response.json();
-
-    return result.data;
+    // Dikirim menggunakan metode GET via Query String sesuai rute pencarian
+    return request(`/api/movies/recommendation?${queryString}`);
 }
 
+// Mengambil detail lengkap satu film berdasarkan ID
 export async function getMovie(movieId) {
-    const response = await fetch(`${API_URL}/api/movies/${movieId}`, {
-        credentials: "include",
-    });
-
-    const result = await response.json();
-
-    return result.data;
+    return request(`/api/movies/${movieId}`);
 }

@@ -47,29 +47,97 @@ class MovieService implements MovieServiceInterface
     }
 
     public function getDetail(int $movieId): array
-    {
-        $detail = $this->tmdb->getMovieDetail($movieId);
-        $images = $this->tmdb->getMovieImages($movieId);
+{
+    $movie = $this->tmdb->getMovieDetail($movieId);
 
-        return [
-            'id'           => $detail['id'],
-            'title'        => $detail['title'],
-            'overview'     => $detail['overview'],
-            'poster_url'   => $this->tmdb->getPosterUrl($detail['poster_path'] ?? null),
-            'backdrop_url' => isset($detail['backdrop_path'])
-                ? self::IMAGE_BASE_URL_W1280 . $detail['backdrop_path']
+    $images = $this->tmdb->getMovieImages($movieId);
+
+    $trailerUrl =
+        $this->tmdb->getMovieTrailer($movieId);
+
+    return [
+
+        'id' => $movie['id'],
+
+        'title' =>
+            $movie['title'] ?? '',
+
+        'overview' =>
+            $movie['overview']
+                ?: 'Sinopsis belum tersedia.',
+
+        'poster_url' =>
+            $this->tmdb->getPosterUrl(
+                $movie['poster_path'] ?? null
+            ),
+
+        'backdrop_url' =>
+            isset($movie['backdrop_path'])
+                ? 'https://image.tmdb.org/t/p/w1280'
+                    .$movie['backdrop_path']
                 : null,
-            'release_date' => $detail['release_date'] ?? null,
-            'release_year' => isset($detail['release_date'])
-                ? substr($detail['release_date'], 0, 4)
+
+        'release_date' =>
+            $movie['release_date'] ?? null,
+
+        'release_year' =>
+            !empty($movie['release_date'])
+                ? substr(
+                    $movie['release_date'],
+                    0,
+                    4
+                )
                 : null,
-            'rating'       => round($detail['vote_average'] ?? 0, 1),
-            'vote_count'   => $detail['vote_count'] ?? 0,
-            'genres'       => $this->formatGenres($detail['genres'] ?? []),
-            'cast'         => $this->formatCast($detail['credits']['cast'] ?? []),
-            'gallery'      => $this->formatGallery($images),
-        ];
-    }
+
+        'rating' =>
+            round(
+                $movie['vote_average'] ?? 0,
+                1
+            ),
+
+        'vote_count' =>
+            $movie['vote_count'] ?? 0,
+
+        'genres' =>
+            $movie['genres'] ?? [],
+
+        'cast' =>
+            collect(
+                $movie['credits']['cast'] ?? []
+            )
+            ->take(12)
+            ->map(fn ($cast) => [
+                'id' => $cast['id'],
+                'name' => $cast['name'],
+                'character' =>
+                    $cast['character'],
+                'profile_url' =>
+                    isset(
+                        $cast['profile_path']
+                    )
+                        ? 'https://image.tmdb.org/t/p/w185'
+                            .$cast['profile_path']
+                        : null,
+            ])
+            ->values(),
+
+        'gallery' =>
+            collect($images)
+                ->take(12)
+                ->map(fn ($image) => [
+                    'image_url' =>
+                        'https://image.tmdb.org/t/p/w780'
+                        .$image['file_path']
+                ])
+                ->values(),
+
+        'trailer_url' =>
+            $trailerUrl,
+
+        'trailer_available' =>
+            !empty($trailerUrl),
+    ];
+}
 
     private function saveSearchHistory(array $filters, int $userId): void
     {
@@ -88,28 +156,65 @@ class MovieService implements MovieServiceInterface
         ]);
     }
 
-    private function formatRecommendation(array $movie, ?string $trailerUrl): array
-    {
-        return [
-            'id'           => $movie['id'],
-            'title'        => $movie['title'],
-            'overview'     => $movie['overview'],
-            'poster_url'   => $this->tmdb->getPosterUrl($movie['poster_path'] ?? null),
-            'backdrop_url' => $movie['backdrop_path']
-                ? self::IMAGE_BASE_URL_W1280 . $movie['backdrop_path']
-                : null,
-            'release_date' => $movie['release_date'] ?? null,
-            'release_year' => isset($movie['release_date'])
-                ? substr($movie['release_date'], 0, 4)
-                : null,
-            'rating'       => round($movie['vote_average'] ?? 0, 1),
-            'vote_count'   => $movie['vote_count'] ?? 0,
-            'genre_ids'    => $movie['genre_ids'] ?? [],
-            'trailer_url'  => $trailerUrl,
-            'trailer_available' => !is_null($trailerUrl),
-        ];
+    private function formatRecommendation(
+    array $movie,
+    ?string $trailerUrl
+): array {
+
+    $overview =
+        $movie['overview'] ?? '';
+
+    if (empty(trim($overview))) {
+        $overview =
+            'Sinopsis belum tersedia untuk film ini.';
     }
 
+    return [
+        'id' => $movie['id'],
+
+        'title' =>
+            $movie['title'] ?? '',
+
+        'overview' =>
+            $overview,
+
+        'poster_url' =>
+            isset($movie['poster_path'])
+                ? 'https://image.tmdb.org/t/p/w500'.$movie['poster_path']
+                : null,
+
+        'backdrop_url' =>
+            isset($movie['backdrop_path'])
+                ? 'https://image.tmdb.org/t/p/w1280'.$movie['backdrop_path']
+                : null,
+
+        'release_date' =>
+            $movie['release_date'] ?? null,
+
+        'release_year' =>
+            !empty($movie['release_date'])
+                ? substr($movie['release_date'],0,4)
+                : null,
+
+        'rating' =>
+            round(
+                $movie['vote_average'] ?? 0,
+                1
+            ),
+
+        'vote_count' =>
+            $movie['vote_count'] ?? 0,
+
+        'genre_ids' =>
+            $movie['genre_ids'] ?? [],
+
+        'trailer_url' =>
+            $trailerUrl,
+
+        'trailer_available' =>
+            !empty($trailerUrl),
+    ];
+}
     private function formatGenres(array $genres): array
     {
         return collect($genres)

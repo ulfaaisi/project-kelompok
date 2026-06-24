@@ -21,11 +21,25 @@ export default function RegisterPage() {
         try {
             setError("");
 
+            // Mengirim objek form yang sudah rapi ke AuthContext
             await register(form);
 
+            // Jika berhasil login otomatis, arahkan ke halaman utama/discover
             navigate("/");
         } catch (err) {
-            setError(err.message);
+            console.error("Detail error dari Laravel:", err);
+
+            // PERBAIKAN UTAMA: Ambil pesan error spesifik dari object validation Laravel 422
+            if (err.errors) {
+                // Menggabungkan semua pesan error validasi menjadi satu teks kalimat
+                const errorMessages = Object.values(err.errors)
+                    .flat()
+                    .join(", ");
+                setError(errorMessages);
+            } else {
+                // Fallback jika ada error tipe lain
+                setError(err.message || "Registrasi gagal, silakan coba lagi.");
+            }
         }
     }
 
@@ -34,13 +48,22 @@ export default function RegisterPage() {
             <form className="auth-form" onSubmit={handleSubmit}>
                 <h1>Daftar</h1>
 
-                {error && <p>{error}</p>}
+                {/* Menampilkan pesan error validasi asli dari Laravel di komponen UI */}
+                {error && (
+                    <p
+                        className="error-message"
+                        style={{ color: "red", marginBottom: "1rem" }}
+                    >
+                        {error}
+                    </p>
+                )}
 
                 <input
                     type="text"
                     placeholder="Nama"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    required
                 />
 
                 <input
@@ -50,6 +73,7 @@ export default function RegisterPage() {
                     onChange={(e) =>
                         setForm({ ...form, email: e.target.value })
                     }
+                    required
                 />
 
                 <input
@@ -59,6 +83,7 @@ export default function RegisterPage() {
                     onChange={(e) =>
                         setForm({ ...form, password: e.target.value })
                     }
+                    required
                 />
 
                 <input
@@ -71,6 +96,7 @@ export default function RegisterPage() {
                             password_confirmation: e.target.value,
                         })
                     }
+                    required
                 />
 
                 <button type="submit">Daftar</button>

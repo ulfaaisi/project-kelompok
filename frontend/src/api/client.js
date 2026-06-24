@@ -1,48 +1,51 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000"; // Fallback jika .env belum terbaca
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-async function csrf() {
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+
+    if (parts.length === 2) {
+        return parts.pop().split(";").shift();
+    }
+
+    return null;
+}
+
+export async function csrf() {
     await fetch(`${API_URL}/sanctum/csrf-cookie`, {
         credentials: "include",
     });
 }
 
-async function request(endpoint, options = {}) {
-    // Memastikan endpoint selalu diawali dengan tanda garis miring '/'
-    const safeEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+export async function request(endpoint, options = {}) {
+    const xsrfToken = getCookie("XSRF-TOKEN");
 
-    const response = await fetch(`${API_URL}${safeEndpoint}`, {
+    const response = await fetch(`${API_URL}${endpoint}`, {
         credentials: "include",
         headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
+            ...(xsrfToken
+                ? {
+                      "X-XSRF-TOKEN": decodeURIComponent(xsrfToken),
+                  }
+                : {}),
             ...options.headers,
         },
         ...options,
     });
 
-    const contentType = response.headers.get("content-type");
-    let data; // Cukup deklarasikan tanpa memberi nilai awal objek kosong {}
+    let data = {};
 
-    // Mengisi variabel data berdasarkan tipe konten respons
-    if (contentType && contentType.includes("application/json")) {
+    try {
         data = await response.json();
-    } else {
-        // Jika server mengembalikan error HTML biasa (seperti 404 / 500)
-        data = { message: `Server error dengan status ${response.status}` };
+    } catch {
+        data = {};
     }
 
     if (!response.ok) {
         throw data;
     }
 
-    // SOLUSI BUG UNTUK PERTANYAAN SEBELUMNYA:
-    // Jika data dari Laravel dibungkus di dalam properti 'data' (seperti result.data),
-    // kita bongkar otomatis di sini agar frontend langsung menerima isi datanya.
-    if (data && data.data !== undefined) {
-        return data.data;
-    }
-
-    return data;
+    return data.data ?? data;
 }
-
-export { csrf, request };

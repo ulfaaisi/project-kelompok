@@ -1,48 +1,39 @@
-import { useEffect, useState } from "react";
-import { addFavorite, getFavorites, removeFavorite } from "../../api/favorites";
+import { useState } from "react";
+
+import { addFavorite } from "../../api/favorites";
+
+import toast from "react-hot-toast";
 
 export default function FavoriteButton({ movie }) {
-    const [favorites, setFavorites] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        loadFavorites();
-    }, []);
-
-    async function loadFavorites() {
+    async function handleFavorite() {
         try {
-            const data = await getFavorites();
-            setFavorites(data);
+            setLoading(true);
+
+            await addFavorite({
+                movie_id: movie.id,
+                movie_title: movie.title,
+                poster_path: movie.poster_path || movie.poster_url,
+                release_year: movie.release_year,
+                rating: movie.rating,
+            });
+
+            toast.success("Film berhasil ditambahkan");
         } catch {
-            setFavorites([]);
-        }
-    }
-
-    const isFavorite = favorites.some((item) => item.movie_id === movie.id);
-
-    async function handleClick() {
-        setLoading(true);
-
-        try {
-            if (isFavorite) {
-                await removeFavorite(movie.id);
-
-                setFavorites((prev) =>
-                    prev.filter((item) => item.movie_id !== movie.id),
-                );
-            } else {
-                const favorite = await addFavorite(movie);
-
-                setFavorites((prev) => [...prev, favorite]);
-            }
+            toast.error("Gagal menambahkan favorit");
         } finally {
             setLoading(false);
         }
     }
 
     return (
-        <button onClick={handleClick} disabled={loading}>
-            {isFavorite ? "❤️ Favorit" : "🤍 Tambah Favorit"}
+        <button
+            className="favorite-btn"
+            onClick={handleFavorite}
+            disabled={loading}
+        >
+            {loading ? "Menyimpan..." : "❤ Tambah Favorit"}
         </button>
     );
 }
