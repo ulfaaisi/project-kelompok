@@ -42,12 +42,13 @@ final class MovieServiceTest extends TestCase
         $historyModel = Mockery::mock('alias:'.SearchHistory::class);
         $tmdb = Mockery::mock(TMDbServiceInterface::class);
         $genreQuery = Mockery::mock();
-
+    
         $filters = [
             'genre_id' => 28,
             'year' => 2024,
             'min_rating' => 7.0,
         ];
+    
         $movie = [
             'id' => 101,
             'title' => 'Example Movie',
@@ -59,27 +60,31 @@ final class MovieServiceTest extends TestCase
             'vote_count' => 1500,
             'genre_ids' => [28, 12],
         ];
+    
         $localGenre = (object) ['id' => 3];
-
+    
         $tmdb->shouldReceive('discoverMovies')
             ->once()
             ->with($filters)
-            ->andReturn(['results' => [$movie], 'total_pages' => 1]);
+            ->andReturn([
+                'results' => [$movie],
+                'total_pages' => 1,
+            ]);
+    
         $tmdb->shouldReceive('getMovieTrailer')
             ->once()
             ->with(101)
             ->andReturn('https://youtube.test/trailer');
-        $tmdb->shouldReceive('getPosterUrl')
-            ->once()
-            ->with('/poster.jpg')
-            ->andReturn('https://image.test/poster.jpg');
-
+    
         $genreModel->shouldReceive('where')
             ->once()
             ->with('tmdb_genre_id', 28)
             ->andReturn($genreQuery);
-        $genreQuery->shouldReceive('first')->once()->andReturn($localGenre);
-
+    
+        $genreQuery->shouldReceive('first')
+            ->once()
+            ->andReturn($localGenre);
+    
         $historyModel->shouldReceive('create')
             ->once()
             ->with(Mockery::on(static function (array $data): bool {
@@ -89,13 +94,19 @@ final class MovieServiceTest extends TestCase
                     && $data['rating'] === 7.0
                     && isset($data['searched_at']);
             }));
-
+    
         $result = (new MovieService($tmdb))->getRecommendation($filters, 7);
-
+    
         self::assertSame(101, $result['id']);
         self::assertSame('Example Movie', $result['title']);
-        self::assertSame('https://image.test/poster.jpg', $result['poster_url']);
-        self::assertSame('https://image.tmdb.org/t/p/w1280/backdrop.jpg', $result['backdrop_url']);
+        self::assertSame(
+            'https://image.tmdb.org/t/p/w500/poster.jpg',
+            $result['poster_url']
+        );
+        self::assertSame(
+            'https://image.tmdb.org/t/p/w1280/backdrop.jpg',
+            $result['backdrop_url']
+        );
         self::assertSame('2024', $result['release_year']);
         self::assertSame(7.8, $result['rating']);
         self::assertTrue($result['trailer_available']);
@@ -131,6 +142,11 @@ final class MovieServiceTest extends TestCase
                     ],
                 ],
             ]);
+
+        $tmdb->shouldReceive('getMovieTrailer')
+            ->once()
+            ->with(101)
+            ->andReturn('https://youtube.com/watch?v=abc123');
 
         $tmdb->shouldReceive('getMovieImages')
             ->once()
