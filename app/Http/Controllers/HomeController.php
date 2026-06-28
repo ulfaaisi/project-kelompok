@@ -38,7 +38,8 @@ class HomeController extends Controller
             [$movie, $error, $filters] = $this->processSearch($request);
         }
 
-        return view('pages.home', compact('genres', 'movie', 'error', 'filters'));
+        // return view('pages.home', compact('genres', 'movie', 'error', 'filters'));
+        return view('welcome', compact('genres', 'movie', 'error', 'filters'));
     }
 
     /**
@@ -93,7 +94,7 @@ class HomeController extends Controller
             }
 
             // Simpan ke riwayat pencarian
-            
+
 
             // Tandai apakah film ini sudah difavoritkan user
             $movie['is_favorited'] = $this->favoriteService->isFavorited(
