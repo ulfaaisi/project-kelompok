@@ -9,9 +9,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'http://localhost:5173',
-    ],
+    //  INI BENAR & DINAMIS
+    'allowed_origins' => ['*'],
     // 'allowed_origins' => [
     // env('FRONTEND_URL', 'http://localhost:5173'),
     // ],

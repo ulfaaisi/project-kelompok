@@ -18,10 +18,17 @@ return [
     |
     */
 
-    'stateful' => explode(',', env(
-    'SANCTUM_STATEFUL_DOMAINS',
-    'localhost:5173,localhost:8000,127.0.0.1:5173,127.0.0.1:8000'
-)),
+    //  Pastikan kodenya seperti ini:
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
+        '%s%s',
+        env('APP_URL', 'http://localhost'),
+        env('FRONTEND_URL', 'http://localhost:5173')
+    ))),
+
+//     'stateful' => explode(',', env(
+//     'SANCTUM_STATEFUL_DOMAINS',
+//     'localhost:5173,localhost:8000,127.0.0.1:5173,127.0.0.1:8000'
+// )),
 
     // 'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
     //     '%s%s',
