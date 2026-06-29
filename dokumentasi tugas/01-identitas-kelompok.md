@@ -9,6 +9,7 @@
 **Jumlah Anggota:** `3` orang
 
 **Repositori:** `https://github.com/ulfaaisi/project-kelompok`
+**link deploy:** `https://positive-caring-production-3d04.up.railway.app/`
 
 ---
 
