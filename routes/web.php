@@ -6,6 +6,10 @@ use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MovieController;
 
+Route::get('/', function () {
+    return "Laravel Berjalan";
+});
+
 Route::get('/', [HomeController::class, 'index'])
     ->name('home');
 
